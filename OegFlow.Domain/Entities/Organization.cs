@@ -1,13 +1,19 @@
-﻿using OrgFlow.Domain.Entities;
+﻿using OegFlow.Domain.Entities;
+using OrgFlow.Domain.Entities;
 
 namespace OrgFlow.Domain.Entites
 {
-    public class Organization
+    public class Organization : BaseEntity
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
+
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+
         public bool IsActive { get; set; } = true;
-        public ICollection<User> Users { get; set; }
-        public ICollection<RequestBase> Requests { get; set; }
+
+        public ICollection<Department> Departments { get; set; } = new List<Department>();
+        public ICollection<OfficeLocation> OfficeLocations { get; set; } = new List<OfficeLocation>();
+        public ICollection<User> Users { get; set; } = new List<User>();
+
     }
 }

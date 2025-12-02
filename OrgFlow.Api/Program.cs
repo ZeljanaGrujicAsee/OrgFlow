@@ -24,6 +24,7 @@ builder.Services.AddDbContext<OrgFlowDbContext>(options =>
 builder.Services.Configure<ApprovalPolicySettings>(
         builder.Configuration.GetSection("ApprovalPolicies")
     );
+builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 
 //builder.Services.AddMediatR(cfg =>
 //cfg.RegisterServicesFromAssembly(typeof(GetAllRequestsQuery).Assembly));    
@@ -39,9 +40,15 @@ builder.Services.AddTransient<IRequestFactory, RequestFactory>();
 
 builder.Services.AddScoped<IRequestRepository, RequestRepository>();
 builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
-builder.Services.AddScoped<IOrganizationService, OrganizationService>();
 builder.Services.AddScoped<RequestWorkflowService>();
 builder.Services.AddTransient<RequestValidator>();
+builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+builder.Services.AddScoped<ITeamRepository, TeamRepository>();
+builder.Services.AddScoped<IOfficeLocationRepository, OfficeLocationRepository>();
+builder.Services.AddScoped<IPositionRepository, PositionRepository>();
+builder.Services.AddScoped<IPositionRepository, PositionRepository>();
+builder.Services.AddScoped<IEmploymentContractRepository, EmploymentContractRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

@@ -10,82 +10,19 @@ using OrgFlow.Infrastructure.Interfaces;
 
 namespace OrgFlow.Infrastructure.Services
 {
-    public class OrganizationRepository : IOrganizationRepository
+    public class OrganizationRepository
+     : BaseRepository<Organization>, IOrganizationRepository
     {
-        private readonly OrgFlowDbContext _context;
-
         public OrganizationRepository(OrgFlowDbContext context)
+            : base(context)
         {
-            _context = context;
         }
 
-        public async Task<Organization> CreateAsync(Organization organization)
+        public async Task<Organization?> GetByNameAsync(string name)
         {
-            // Po želji možeš da dodaš validacije (npr. da Name nije prazan)
-            await _context.Organizations.AddAsync(organization);
-            await _context.SaveChangesAsync();
-            return organization;
-        }
-
-        public async Task<Organization?> GetByIdAsync(int id)
-        {
-            // Ako želiš da odmah učitaš i navigacione kolekcije:
-            return await _context.Organizations
-                .Include(o => o.Users)
-                .Include(o => o.Requests)
-                .FirstOrDefaultAsync(o => o.Id == id);
-        }
-
-        public async Task<IReadOnlyList<Organization>> GetAllAsync()
-        {
-            return await _context.Organizations
+            return await _dbSet
                 .AsNoTracking()
-                .ToListAsync();
-        }
-
-        public async Task<Organization> UpdateAsync(Organization organization)
-        {
-            // Pretpostavljamo da entity već postoji; možeš prethodno da ga proveriš
-            _context.Organizations.Update(organization);
-            await _context.SaveChangesAsync();
-            return organization;
-        }
-
-        public async Task DeleteAsync(int id)
-        {
-            var existing = await _context.Organizations.FindAsync(id);
-            if (existing == null)
-            {
-                // Po želji baci custom exception ili samo quietly return
-                return;
-            }
-
-            _context.Organizations.Remove(existing);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task<OrganizationPaginated> GetPaginatedAsync(int page, int pageSize)
-        {
-            var query = _context.Organizations.AsQueryable();
-
-            // 1. Ukupan broj zapisa
-            var totalCount = await query.CountAsync();
-
-            // 2. Paginacija
-            var items = await query
-                .OrderBy(o => o.Id)                 // uvek definiši order!!!
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .AsNoTracking()
-                .ToListAsync();
-
-            return new OrganizationPaginated
-            {
-                Organizations = items,
-                TotalCount = totalCount,
-                Page = page,
-                PageSize = pageSize
-            };
+                .FirstOrDefaultAsync(o => o.Name == name);
         }
     }
 }

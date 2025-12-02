@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using OegFlow.Domain.DTOs;
 using OrgFlow.Application.Interfaces;
+using OrgFlow.Application.Organizations.Commands;
+using OrgFlow.Application.Organizations.Queries;
 using OrgFlow.Application.Services;
 using OrgFlow.Domain.Entites;
 
@@ -10,45 +13,64 @@ namespace OrgFlow.Api.Controllers
     [Route("api/[controller]")]
     public class OrganizationsController : ControllerBase
     {
-        public readonly IOrganizationService _organizationService;
+        private readonly IMediator _mediator;
 
-        public OrganizationsController(IOrganizationService organizationService)
+        public OrganizationsController(IMediator mediator)
         {
-            _organizationService = organizationService;
+            _mediator = mediator;
         }
 
+        // GET api/organizations
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Organization>>> GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var result = await _organizationService.GetAllAsync();
-            return Ok(result);
+            var items = await _mediator.Send(new GetAllOrganizationsQuery());
+            return Ok(items);
         }
 
-        [HttpGet]
-        [Route("GetAll")]
-        public async Task<ActionResult<OrganizationPaginated>> GetAllPaginated([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        // GET api/organizations/{id}
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
         {
-            var result = await _organizationService.GetPaginatedAsync(page, pageSize);
-            return Ok(result);
+            var item = await _mediator.Send(new GetOrganizationByIdQuery(id));
+            if (item == null) return NotFound();
+            return Ok(item);
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<Organization>> Get(int id)
+        // GET api/organizations/by-name/{name}
+        [HttpGet("by-name/{name}")]
+        public async Task<IActionResult> GetByName(string name)
         {
-            var result = await _organizationService.GetByIdAsync(id);
-            if (result is null)
-                return NotFound(); // slajd 16
-
-            return Ok(result);
+            var item = await _mediator.Send(new GetOrganizationByNameQuery(name));
+            if (item == null) return NotFound();
+            return Ok(item);
         }
 
+        // POST api/organizations
         [HttpPost]
-        public async Task<ActionResult<Organization>> Create([FromBody] OrganizationDto dto)
+        public async Task<IActionResult> Create([FromBody] CreateOrganizationDto dto)
         {
-            var result = await _organizationService.CreateAsync(dto);
+            var created = await _mediator.Send(new CreateOrganizationCommand(dto));
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+        }
 
-            // slajd 16: 201 Created + Location
-            return CreatedAtAction(nameof(Get), new { id = result.Id }, result);
+        // PUT api/organizations/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateOrganizationDto dto)
+        {
+            if (id != dto.Id)
+                return BadRequest("Id in URL and body must match.");
+
+            var updated = await _mediator.Send(new UpdateOrganizationCommand(dto));
+            return Ok(updated);
+        }
+
+        // DELETE (soft) api/organizations/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Deactivate(int id)
+        {
+            await _mediator.Send(new DeactivateOrganizationCommand(id));
+            return NoContent();
         }
     }
 }
