@@ -12,7 +12,7 @@ namespace OrgFlow.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "Organizations.Read.All")]
 
     public class OrganizationsController : ControllerBase
     {

@@ -9,9 +9,7 @@ namespace OrgFlow.Domain.Entities
 {
     public class UserRole
     {
-        public int Id { get; set; }
-        public RoleName Role { get; set; }
-        public int UserId { get; set; }
-        public User? User { get; set; }
+        public int Id { get; set; }                 
+        public string Name { get; set; } = null!;  
     }
 }

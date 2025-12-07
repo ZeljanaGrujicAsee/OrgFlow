@@ -5,6 +5,7 @@ using OegFlow.Domain.Models;
 using OrgFlow.Domain.Entites;
 using OrgFlow.Domain.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using OegFlow.Domain;
 
 namespace OrgFlow.Infrastructure
 {
@@ -26,12 +27,20 @@ namespace OrgFlow.Infrastructure
         public DbSet<OfficeLocation> OfficeLocations => Set<OfficeLocation>();
         public DbSet<Position> Positions => Set<Position>();
         public DbSet<EmploymentContract> EmploymentContracts => Set<EmploymentContract>();
+        public DbSet<Permission> Permissions { get; set; }
+        public DbSet<RolePermission> RolePermissions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
             ConfigureOrganizationModel(modelBuilder);
+
+            modelBuilder.Entity<UserRole>()
+            .Property(x => x.Id)
+            .ValueGeneratedNever();
+
+
 
             modelBuilder.Entity<EmploymentContract>(b =>
             {
@@ -97,7 +106,7 @@ namespace OrgFlow.Infrastructure
                 b.HasOne(u => u.Manager)
                     .WithMany(m => m.DirectReports)
                     .HasForeignKey(u => u.ManagerId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             var request = modelBuilder.Entity<RequestBase>();
@@ -127,6 +136,20 @@ namespace OrgFlow.Infrastructure
                 b.Property(r => r.Location);
             });
 
+            modelBuilder.Entity<RolePermission>()
+                .HasOne(rp => rp.Role)
+                .WithMany()
+                .HasForeignKey(rp => rp.RoleId);
+
+            modelBuilder.Entity<RolePermission>()
+                .HasOne(rp => rp.Permission)
+                .WithMany(p => p.RolePermissions)
+                .HasForeignKey(rp => rp.PermissionId);
+
+            modelBuilder.Entity<Permission>().HasData(
+            DefaultPermissions.All.Select((p, index) =>
+                new Permission { Id = index + 1, Name = p })
+);
             // Relacije 
             //request
             //    .HasOne(r => r.Organization)

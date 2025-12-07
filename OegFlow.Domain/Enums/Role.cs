@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace OrgFlow.Domain.Enums
 {
-    public enum RoleName { SystemAdmin, OrgAdmin, Manager, Employee, Auditor }
+    public enum Role{ Admin = 1, Manager, Lead, Employee }
 
 }

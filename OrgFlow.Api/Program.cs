@@ -17,6 +17,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Identity;
 using OegFlow.Domain.Models;
 using Microsoft.OpenApi.Models;
+using OrgFlow.Infrastructure.Seeders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,7 +30,7 @@ builder.Services.AddDbContext<OrgFlowDbContext>(options =>
        options.UseSqlServer(connectionString)
     );
 
-// 2. IDENTITY
+// IDENTITY
 builder.Services
     .AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
@@ -62,6 +63,7 @@ builder.Services.AddTransient<IRequestFactory, RequestFactory>();
 builder.Services.AddScoped<IRequestRepository, RequestRepository>();
 builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
 builder.Services.AddScoped<RequestWorkflowService>();
+builder.Services.AddScoped<UserContext>();
 builder.Services.AddTransient<RequestValidator>();
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<ITeamRepository, TeamRepository>();
@@ -70,9 +72,17 @@ builder.Services.AddScoped<IPositionRepository, PositionRepository>();
 builder.Services.AddScoped<IPositionRepository, PositionRepository>();
 builder.Services.AddScoped<IEmploymentContractRepository, EmploymentContractRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRolePermissionsRepository, RolePermissionsRepository>();
+builder.Services.AddScoped<IUserRolesRepository, UserRolesRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<UserContext>();
-
+builder.Services.AddAuthorization(options =>
+{
+    foreach (var perm in DefaultPermissions.All)
+    {
+        options.AddPolicy(perm, policy =>
+            policy.RequireClaim("permission", perm));
+    }
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
@@ -124,20 +134,20 @@ builder.Services.AddSwaggerGen(c =>
 
     // Apply BearerAuth globally
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
-                    {
-                    {
-                    new OpenApiSecurityScheme
-                    {
-                    Reference = new OpenApiReference
-                    {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                    }
-                    },
-                    Array.Empty<string>()
-                    }
-                    });
-                    });
+     {
+        {
+           new OpenApiSecurityScheme
+           {
+              Reference = new OpenApiReference
+              {
+                 Type = ReferenceType.SecurityScheme,
+                  Id = "Bearer"
+              }
+           },
+           Array.Empty<string>()
+        }
+     });
+ });
 
 
 // 2) Authentication + JWT Bearer
@@ -149,10 +159,30 @@ builder.Services
         options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     });
  
-// 3) Authorization (može kasnije i policy-je)
+// Authorization 
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    try
+    {
+        var db = services.GetRequiredService<OrgFlowDbContext>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
+        await RoleEntitySeeder.Seed(db);
+        await IdentityRoleSeeder.Seed(roleManager);
+        await RolePermissionSeeder.Seed(roleManager, db);
+       
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"SEED ERROR: {ex.Message}");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -166,13 +196,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
-app.Use(async (context, next) =>
-{
-    Console.WriteLine(" AUTH HEADER: " + context.Request.Headers["Authorization"]);
-    await next();
-});
-//app.UseCors("Open");
-
 app.UseAuthentication();   // obavezno pre UseAuthorization
 app.UseMiddleware<UserContextMiddleware>();
 

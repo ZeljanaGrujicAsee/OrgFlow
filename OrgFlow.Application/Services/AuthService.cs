@@ -10,6 +10,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using OegFlow.Domain.Models;
 using OrgFlow.Application.Interfaces;
+using OrgFlow.Domain.Entities;
+using OrgFlow.Domain.Enums;
 using OrgFlow.Infrastructure.Interfaces;
 
 namespace OrgFlow.Application.Services
@@ -21,17 +23,23 @@ namespace OrgFlow.Application.Services
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConfiguration _config;
         private readonly IUserRepository _userRepository;
+        private readonly IRolePermissionsRepository _permissionRepository;
+        private readonly IUserRolesRepository _rolesRepository;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
              IUserRepository userRepository,
-            IConfiguration config)
+            IConfiguration config,
+            IRolePermissionsRepository permissionRepository,
+            IUserRolesRepository rolesRepository)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _config = config;
             _userRepository = userRepository;
+            _permissionRepository = permissionRepository;
+            _rolesRepository = rolesRepository;
         }
 
         public async Task<(bool IsSuccess, string Message)> RegisterAsync(RegisterRequest request, string role)
@@ -59,10 +67,10 @@ namespace OrgFlow.Application.Services
             if (!result.Succeeded)
                 return (false, "User creation failed");
 
-            if (!await _roleManager.RoleExistsAsync(userInOrg.Position.Name))
-                await _roleManager.CreateAsync(new IdentityRole(userInOrg.Position.Name));
+            if (!await _roleManager.RoleExistsAsync(Enum.GetName(typeof(Role), userInOrg.Position.Role)))
+                await _roleManager.CreateAsync(new IdentityRole(Enum.GetName(typeof(Role), userInOrg.Position.Role)));
 
-            await _userManager.AddToRoleAsync(user, userInOrg.Position.Name);
+            await _userManager.AddToRoleAsync(user, Enum.GetName(typeof(Role), userInOrg.Position.Role));
 
             return (true, "User created successfully");
         }
@@ -73,8 +81,8 @@ namespace OrgFlow.Application.Services
             if (user == null)
                 return (false, "Invalid username");
 
-            //if (!await _userManager.CheckPasswordAsync(user, request.Password))
-            //    return (false, "Invalid password");
+            if (!await _userManager.CheckPasswordAsync(user, request.Password))
+                return (false, "Invalid password");
 
             var roles = await _userManager.GetRolesAsync(user);
 
@@ -90,6 +98,15 @@ namespace OrgFlow.Application.Services
 
             foreach (var r in roles)
                 claims.Add(new Claim(ClaimTypes.Role, r));
+
+            var userRole = await _rolesRepository.GetByNameAsync(roles.FirstOrDefault());
+            var rolePermissions = await _permissionRepository.GetRolePermissions(userRole.Id);
+            
+
+            foreach (var perm in rolePermissions)
+            {
+                claims.Add(new Claim("Permission", perm.Name));
+            }
 
             return (true, GenerateJwt(claims));
         }
