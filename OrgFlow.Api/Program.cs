@@ -76,8 +76,11 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRolePermissionsRepository, RolePermissionsRepository>();
 builder.Services.AddScoped<IUserRolesRepository, UserRolesRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IEmployeeExportService, EmployeeExportService>();
+builder.Services.AddScoped<IEmployeeImportService, EmployeeImportService>();
 
 builder.Services.AddHostedService<PendingRequestMonitor>();
+builder.Services.AddHostedService<EmployeeFileWatcherService>();
 
 builder.Services.AddAuthorization(options =>
 {
