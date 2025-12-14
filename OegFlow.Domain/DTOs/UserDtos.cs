@@ -8,7 +8,6 @@ namespace OegFlow.Domain.DTOs
 {
     public class CreateUserDto
     {
-        public int OrganizationId { get; set; }
 
         public int? DepartmentId { get; set; }
         public int? TeamId { get; set; }
@@ -25,7 +24,6 @@ namespace OegFlow.Domain.DTOs
     {
         public int Id { get; set; }
 
-        public int OrganizationId { get; set; }
 
         public int? DepartmentId { get; set; }
         public int? TeamId { get; set; }

@@ -10,7 +10,7 @@ namespace OrgFlow.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    //[Authorize]
     public class DepartmentsController : ControllerBase
     {
         private readonly IMediator _mediator;

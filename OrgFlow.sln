@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OegFlow.Domain", "OegFlow.D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrgFlow.Infrastructure", "OrgFlow.Infrastructure\OrgFlow.Infrastructure.csproj", "{27CED58E-B6F7-49AD-AEBF-704FDA7BA1A1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrgFlow.Tests", "OrgFlow.Tests\OrgFlow.Tests.csproj", "{17027EAD-F997-478C-8F5A-B79878ADF06E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{27CED58E-B6F7-49AD-AEBF-704FDA7BA1A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{27CED58E-B6F7-49AD-AEBF-704FDA7BA1A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{27CED58E-B6F7-49AD-AEBF-704FDA7BA1A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17027EAD-F997-478C-8F5A-B79878ADF06E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17027EAD-F997-478C-8F5A-B79878ADF06E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17027EAD-F997-478C-8F5A-B79878ADF06E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17027EAD-F997-478C-8F5A-B79878ADF06E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
